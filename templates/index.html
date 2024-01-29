@@ -1,0 +1,35 @@
+<html>
+    <style>
+        .wykres {
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        form {
+            width: 100%;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+    <body>
+        <div class="wykres">
+            <img src='data:image/png;base64,{{data}}'/>
+        </div>
+        <form method='POST'>
+            <div>
+                <p>Czas trwania symulacji:</p>
+                <input min='1' name='time' value='{{T}}' type='number'>
+            </div>
+            <div>
+                <p>Waga świni:</p>
+                <input min='30' max='120' name='pig_weight' value='{{pig_weight}}' type='number'>
+            </div>
+            <div>
+                <p>Ilość świni:</p>
+                <input min='1' max='200' name='pig_number' value='{{pig_number}}' type='number'>
+            </div>
+            <input style="margin-top:30px;" type='submit' value='Aktualizuj'>
+        </form>
+    </body>
+</html>
