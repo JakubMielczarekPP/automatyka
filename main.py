@@ -13,7 +13,6 @@ app = Flask(__name__)
 # Parametry równania
 alpha = 0.01
 R0 = 0.4 # Początkowe natężenie   # do znaleziena czy dobrze
-k = 0.0005
 
 # Warunki poczatkowe
 I0 = 0.0
@@ -27,7 +26,7 @@ refill_threshold = 5.0  # próg uzupełnienia pojemnika
 emptying_intensity = 300  # natężenie opróżniania pojemnika 3kilo/sekunda
 
 # Funkcja opisująca natężenie paszy dostarczanej z pojemnika głównego
-def R(t):   # Kilo/sekunde
+def R(t, k):   # Kilo/sekunde
     return R0 * np.exp(-k * t)
 
 # Funkcja opróżniająca pojemnik
@@ -39,16 +38,16 @@ def emptying(I_value, t):
         return I_value
 
 # Rozwiązanie równania różniczkowego 
-def solve_differential_equation_refill(I_value, t):
+def solve_differential_equation_refill(I_value, t, k_value):
 
     # Równania różniczkowe
-    dI_dt = R(t) - alpha * I_value
+    dI_dt = R(t, k_value) - alpha * I_value
     I_new = I_value + dt * dI_dt
 
     return I_new
 
 # Symulacja dozownika
-def run_dozownik(pig_number, pig_weight, T):
+def run_dozownik(pig_number, pig_weight, T, k_value):
     
     ammount_to_eat = float(pig_weight) * 0.04 * pig_number
 
@@ -90,7 +89,7 @@ def run_dozownik(pig_number, pig_weight, T):
                 if state_of_refilling == False:
                     time_of_refilling = 0
                 if I_values[-1] < max_weight:
-                    I_value = solve_differential_equation_refill(I_values[-1], time_of_refilling)
+                    I_value = solve_differential_equation_refill(I_values[-1], time_of_refilling, k_value)
                     state_of_refilling = True
                 else:
                     I_value = I_values[-1]
@@ -107,16 +106,17 @@ def form():
     pig_number = int(request.form['pig_number'])
     pig_weight = int(request.form['pig_weight'])
     time = int(request.form['time'])
-    return web(pig_number, pig_weight, time)
+    k_value = float(request.form['k_value'])
+    return web(pig_number, pig_weight, time, k_value)
 
 
 
 @app.route("/", methods=["GET"])
-def web(pig_number = 2, pig_weight = 50, T = 1200):
+def web(pig_number = 2, pig_weight = 50, T = 1200, k_value = 0.0005):
     # Wykres
     fig = Figure()
     ax = fig.subplots()
-    time, pasza_w_dozowniku = run_dozownik(pig_number, pig_weight, T)
+    time, pasza_w_dozowniku = run_dozownik(pig_number, pig_weight, T, k_value)
     ax.plot(time, pasza_w_dozowniku, label='Ilość karmy w pojemniku')
 
     ax.set_xlabel('Czas [sekundy]')
@@ -126,4 +126,4 @@ def web(pig_number = 2, pig_weight = 50, T = 1200):
     buf = BytesIO()
     fig.savefig(buf, format="png")
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
-    return render_template('index.html', data=data, pig_number=pig_number, pig_weight=pig_weight, T=T)
+    return render_template('index.html', data=data, pig_number=pig_number, pig_weight=pig_weight, T=T, k_value=k_value)
